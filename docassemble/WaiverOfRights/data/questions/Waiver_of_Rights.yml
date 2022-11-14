@@ -1,0 +1,335 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+  - docassemble.MassAccess:massaccess.yml
+---
+metadata:
+  title: |
+    Waiver of Rights
+  short title: |
+    Waiver of Rights
+  tags:
+    - GO-00-00-00-00
+  authors:
+    -  
+---
+mandatory: True
+comment: |
+  This contains metadata that will not be overwritten if this YAML file is included in another
+  file. Each file gets its own key in the interview_metadata dictionary.
+  Most keys are not currently used at runtime, other than "allowed courts".
+code: |
+  interview_metadata
+  if not defined("interview_metadata['Waiver_of_Rights']"):
+    interview_metadata.initializeObject("Waiver_of_Rights")
+    interview_metadata["Waiver_of_Rights"].update({
+      "al_weaver_version": "1.4.7",
+      "generated on": "2021-12-13",
+      "title": "Waiver of Rights",
+      "short title": "Waiver of Rights",
+      "description": "Waiver of Rights",
+      "original_form": "https://courtformsonline.org/forms/c49ab710181c333826c1e7a64816060295924b97c211bbd143986a13.pdf",
+      "allowed courts": [
+      ],
+      "categories": [
+        "GO-00-00-00-00",
+      ],        
+      "logic block variable": "interview_order_Waiver_of_Rights",
+      "attachment block variable": "Waiver_of_Rights_attachment",
+      "typical role": "unknown",
+    })
+---
+code: |
+  interview_metadata['main_interview_key'] =  'Waiver_of_Rights'
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "UT"
+---
+code: |
+  github_repo_name =  'docassemble-WaiverOfRights'
+---
+code: |
+  interview_short_title = "Ask the court for a Waiver of Rights"
+---
+code: |
+  al_form_type = 'starts_case'
+---
+objects:
+  - users: ALPeopleList
+---
+sections:
+  - review_Waiver_of_Rights: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_Waiver_of_Rights
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["Waiver_of_Rights"]["allowed courts"]
+  nav.set_section('review_Waiver_of_Rights')
+  # Below sets the user_role by asking a question.
+  # You can set user_role directly instead to either 'plaintiff' or 'defendant'
+  user_ask_role
+  Commissioner
+  Email
+  users.gather()
+  set_parts(subtitle=str(users))
+  set_progress(20)
+  users[0].address.address
+  users[0].phone_number
+  set_progress(40)
+  docket_number
+  signature_date
+  interview_order_Waiver_of_Rights = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  Waiver_of_Rights_intro
+  interview_order_Waiver_of_Rights
+  signature_date
+  # Save anonymized interview statistics (customize the saved data below)
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  Waiver_of_Rights_preview_question
+  basic_questions_signature_flow
+  users[0].signature
+  Waiver_of_Rights_download
+---
+comment: |
+  This question is used to introduce your interview. Please customize
+id: Waiver_of_Rights
+continue button field: Waiver_of_Rights_intro
+question: |
+  Waiver of Rights
+subquestion: |
+  Before you get started, you need to...
+---
+id: Commissioner
+question: |
+  Commissioner
+fields:
+  - "Commissioner": commissioner
+    maxlength: 34
+continue button field: Commissioner
+---
+id: Email
+question: |
+  Email
+fields:
+  - "Email": email
+    maxlength: 38
+  - "Adoptees name": adoptees[0]
+    maxlength: 41
+  - "Judge": judge
+    maxlength: 34
+  - "Matter adoption name": matter_adoption[0]
+    input type: area
+    maxlength: 252
+  - "Waiver rights": waiver_rights
+    maxlength: 79
+  - "Signed": signed
+    maxlength: 50
+continue button field: Email
+---
+id: preview Waiver_of_Rights
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Make changes" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_Waiver_of_Rights'), label='Make changes', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: Waiver_of_Rights_preview_question    
+---
+code: |
+  signature_fields = ['users[0].signature']
+---
+id: Waiver of Rights review screen
+event: review_Waiver_of_Rights
+question: |
+  Review your answers
+review:
+  - Edit: email
+    button: |
+      **Email**:
+      ${ email }
+  - Edit: adoptees.revisit
+    button: |
+      **Adoptees**
+
+      % for item in adoptees:
+        * ${ item }
+      % endfor
+  - Edit: judge
+    button: |
+      **Judge**:
+      ${ judge }
+  - Edit: commissioner
+    button: |
+      **Commissioner**:
+      ${ commissioner }
+  - Edit: matter_adoption.revisit
+    button: |
+      **Matter adoption**
+
+      % for item in matter_adoption:
+        * ${ item }
+      % endfor
+  - Edit: waiver_rights
+    button: |
+      **Waiver rights**:
+      ${ waiver_rights }
+  - Edit: signed
+    button: |
+      **Signed**:
+      ${ signed }
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+  - Edit: docket_number
+    button: |
+      **docket_number**:
+      ${ docket_number }
+  - Edit: signature_date
+    button: |
+      **signature_date**:
+      ${ signature_date }
+---
+continue button field: adoptees.revisit
+question: |
+  Edit adoptees
+subquestion: |
+  ${ adoptees.table }
+
+  ${ adoptees.add_action() }
+---
+table: adoptees.table
+rows: adoptees
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: matter_adoption.revisit
+question: |
+  Edit matter_adoption
+subquestion: |
+  ${ matter_adoption.table }
+
+  ${ matter_adoption.add_action() }
+---
+table: matter_adoption.table
+rows: matter_adoption
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+edit:
+  - name.first
+confirm: True
+
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Signature: |
+      row_item.signature if defined("row_item.signature") else ""
+edit:
+  - name.first
+  - address.address
+  - phone_number
+  - signature
+confirm: True
+
+---
+id: download Waiver_of_Rights
+event: Waiver_of_Rights_download
+question: |
+  Your form is ready to download.
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Make changes" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_Waiver_of_Rights'), label='Make changes', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+
+progress: 100
+---
+objects:
+  - Waiver_of_Rights_post_interview_instructions: ALDocument.using(title="Instructions", filename="Waiver_of_Rights_next_steps.docx", enabled=True, has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - Waiver_of_Rights_attachment: ALDocument.using(title="Waiver of Rights", filename="file.pdf", enabled=True, has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[Waiver_of_Rights_post_interview_instructions,Waiver_of_Rights_attachment], filename="Waiver_of_Rights_package.pdf", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[Waiver_of_Rights_attachment], filename="Waiver_of_Rights_package.pdf", title="All forms to download for your records", enabled=True)
+---
+attachments:
+  - name: Waiver of Rights post interview instructions
+    filename: Post-interview-instructions     
+    variable name: Waiver_of_Rights_post_interview_instructions[i]        
+    docx template file: Waiver_of_Rights_next_steps.docx
+  - name: Waiver of Rights attachment
+    filename: Waiver_of_Rights     
+    variable name: Waiver_of_Rights_attachment[i]        
+    skip undefined: True
+    pdf template file: file.pdf
+    fields:
+      - "users1_name__1": ${ users[0] }
+      - "users1_name__2": ${ users[0] }
+      - "users1_address_line_one": ${ users[0].address.line_one() }
+      - "users1_address_line_two": ${ users[0].address.line_two() }
+      - "users1_phone_number": ${ users[0].phone_number }
+      - "docket_number": ${ docket_number }
+      - "signature_date": ${ signature_date }
+      - "users1_signature": ${ users[0].signature_if_final(i) }
+      - "email": ${ email }
+      - "adoptees_name": ${ adoptees[0] }
+      - "judge": ${ judge }
+      - "commissioner": ${ commissioner }
+      - "matter_adoption_name": ${ matter_adoption[0] }
+      - "waiver_rights__1": ${ waiver_rights }
+      - "waiver_rights__2": ${ waiver_rights }
+      - "signed": ${ signed }
